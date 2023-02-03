@@ -1,0 +1,427 @@
+package com.capgemini.medicalboot.controller;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.capgemini.medicalboot.bean.AdminUserBean;
+import com.capgemini.medicalboot.bean.CartBean;
+import com.capgemini.medicalboot.bean.DiscussionBoardBean;
+import com.capgemini.medicalboot.bean.OrderProductBean;
+import com.capgemini.medicalboot.bean.ProductBean;
+import com.capgemini.medicalboot.response.MedicalResponse;
+import com.capgemini.medicalboot.service.AdminUserService;
+import com.capgemini.medicalboot.service.CartService;
+import com.capgemini.medicalboot.service.DiscussionBoardService;
+import com.capgemini.medicalboot.service.ProductService;
+
+@RestController
+@CrossOrigin(origins = "http://localhost:4200")
+public class AdminUserController {
+
+	@Autowired
+	private AdminUserService adminUserService;
+
+	@Autowired
+	private CartService cartService;
+
+	@Autowired
+	private DiscussionBoardService discussionBoardService;
+
+	@Autowired
+	private ProductService productService;
+
+	static AdminUserBean auBean = null;
+
+	// .............................AdminUserRegister....................................//
+
+	@PutMapping(path = "/adminUserRegister", consumes = { MediaType.APPLICATION_XML_VALUE,
+			MediaType.APPLICATION_JSON_VALUE }, produces = MediaType.APPLICATION_JSON_VALUE)
+	public MedicalResponse adminuserRegister(@RequestBody AdminUserBean adminUserBean) {
+
+		AdminUserBean adminuserBean1 = adminUserService.adminuserRegister(adminUserBean);
+		MedicalResponse medicalResponse = new MedicalResponse();
+
+		if (adminuserBean1 != null) {
+			medicalResponse.setStatusCode(210);
+			medicalResponse.setMessage("success");
+			medicalResponse.setDescription(adminuserBean1.getName() + "Registered Sucessfully");
+		} else {
+			medicalResponse.setStatusCode(230);
+			medicalResponse.setMessage("fail");
+			medicalResponse.setDescription("Not Registered..Please Try Again");
+		}
+
+		return medicalResponse;
+
+	}// end of adminuserRegister()
+
+	// .............................AdminUserLogin....................................//
+
+	@PostMapping(path = "/adminuserLogin", produces = { MediaType.APPLICATION_JSON_VALUE,
+			MediaType.APPLICATION_XML_VALUE })
+	public MedicalResponse adminuserLogin(@RequestBody AdminUserBean adminuserBean) {
+		String email = adminuserBean.getEmail();
+		String password = adminuserBean.getPassword();
+		String role = adminuserBean.getRole();
+
+		auBean = adminUserService.adminuserLogin(email, password);
+		MedicalResponse medicalResponse = new MedicalResponse();
+		if (auBean.getRole().equals(role)) {
+			if (auBean != null) {
+				medicalResponse.setStatusCode(210);
+				medicalResponse.setMessage("success");
+				medicalResponse.setDescription(auBean.getName() + " Login successfully");
+				medicalResponse.setRole(auBean.getRole());
+
+			} else {
+				medicalResponse.setStatusCode(230);
+				medicalResponse.setMessage("fail");
+				medicalResponse.setDescription("Not Login successfully..Please Try again");
+			}
+			return medicalResponse;
+
+		} else {
+
+			if (auBean != null) {
+				medicalResponse.setStatusCode(210);
+				medicalResponse.setMessage("success");
+				medicalResponse.setDescription(auBean.getName() + " Login successfully");
+				medicalResponse.setRole(auBean.getRole());
+			} else {
+				medicalResponse.setStatusCode(230);
+				medicalResponse.setMessage("fail");
+				medicalResponse.setDescription("Not Login successfully..Please Try again");
+			}
+			return medicalResponse;
+
+		}
+	}// end of adminuserLogin()
+
+	// .............................AdminUserProfile....................................//
+
+	@GetMapping(path = "/adminuserProfile", produces = { MediaType.APPLICATION_JSON_VALUE,
+			MediaType.APPLICATION_XML_VALUE })
+	public MedicalResponse adminuserProfile() {
+
+		AdminUserBean adminuserBean = adminUserService.adminuserProfile(auBean);
+		MedicalResponse response = new MedicalResponse();
+
+		if (adminuserBean != null) {
+			response.setStatusCode(210);
+			response.setMessage("success");
+			response.setDescription(adminuserBean.getName() + "Profile");
+			response.setAdminUserBean(adminuserBean);
+			;
+
+		} else {
+			response.setStatusCode(230);
+			response.setMessage("fail");
+			response.setDescription("Profile Not Getting");
+		}
+		return response;
+	}// End of adminuserProfile()
+
+	// .............................AdminUserUpdateProfile....................................//
+
+	@PostMapping(path = "/adminuserUpdateProfile", consumes = { MediaType.APPLICATION_XML_VALUE,
+			MediaType.APPLICATION_JSON_VALUE }, produces = MediaType.APPLICATION_JSON_VALUE)
+	// @ResponseBody
+	public MedicalResponse adminuserUpdateProfile(@RequestBody AdminUserBean adminUserBean) {
+
+		int id = auBean.getId();
+		adminUserBean.setId(id);
+
+		AdminUserBean adminuserBean1 = adminUserService.adminuserUpdateProfile(adminUserBean);
+		MedicalResponse response = new MedicalResponse();
+
+		if (adminuserBean1 != null) {
+			response.setStatusCode(210);
+			response.setMessage("success");
+			response.setDescription(adminuserBean1.getName() + "Profile updated successfully");
+			response.setAdminUserBean(adminuserBean1);
+		} else {
+			response.setStatusCode(230);
+			response.setMessage("fail");
+			response.setDescription("Profile not updated ");
+		}
+		return response;
+
+	}// end of updateEmployee
+
+	// .............................userList....................................//
+
+	@GetMapping(path = "/userList", produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE })
+	public MedicalResponse userList() {
+		List<AdminUserBean> userList = adminUserService.userList();
+		MedicalResponse response = new MedicalResponse();
+		if (userList != null && !userList.isEmpty()) {
+			response.setStatusCode(210);
+			response.setMessage("success");
+			response.setDescription("User List");
+			response.setAdminUserBeanList(userList);
+
+		} else {
+			response.setStatusCode(230);
+			response.setMessage("fail");
+			response.setDescription("User Not Found");
+		}
+		return response;
+	}// End of userList
+
+	// .............................addProductToCart....................................//
+
+	@PostMapping(path = "/addProductToCart", consumes = { MediaType.APPLICATION_XML_VALUE,
+			MediaType.APPLICATION_JSON_VALUE }, produces = MediaType.APPLICATION_JSON_VALUE)
+	public MedicalResponse addProductToCart(@RequestBody CartBean cartBean) {
+
+		int id = auBean.getId();
+		cartBean.setId(id);
+		CartBean cartBean1 = cartService.addProductToCart(cartBean);
+		MedicalResponse medicalResponse = new MedicalResponse();
+		if (cartBean1 != null) {
+			medicalResponse.setStatusCode(210);
+			medicalResponse.setMessage("success");
+			medicalResponse.setDescription("product added to cart successfully");
+
+//			List<ProductBean> list = productService.productList();
+//			int productId = cartBean.getProductId();
+//			for (ProductBean productBean2 : list) {
+//				if (productId == productBean2.getProductId()) {
+//
+//					productBean2.setProductId(productId);
+//					int userQuantity = cartBean.getProductQuantity();
+//					int actualQuantity = productBean2.getProductQuantity();
+//					int updatedQuantity = actualQuantity - userQuantity;
+//					productBean2.setProductQuantity(updatedQuantity);
+//					productService.updateProductQuantity(productBean2);
+//				}
+//			}
+
+		} else {
+			medicalResponse.setStatusCode(230);
+			medicalResponse.setMessage("fail");
+			medicalResponse.setDescription("product not added.. please try agian");
+		}
+		return medicalResponse;
+
+	}// end of addEmployee
+
+	// .............................deleteProductFromCart....................................//
+
+	@DeleteMapping(path = "/deleteProductFromCart/{cartId}", produces = { MediaType.APPLICATION_JSON_VALUE,
+			MediaType.APPLICATION_XML_VALUE })
+	// @ResponseBody
+	public MedicalResponse deleteProductFromCart(@PathVariable int cartId) {
+		// System.out.println(cartBean);
+		// int id = auBean.getId();
+		// cartBean.setId(id);
+		boolean isDeleted = cartService.deleteProductFromCart(cartId);
+		MedicalResponse response = new MedicalResponse();
+		if (isDeleted) {
+			response.setStatusCode(210);
+			response.setMessage("success");
+			response.setDescription("product deleted from cart successfully");
+		} else {
+			response.setStatusCode(230);
+			response.setMessage("fail");
+			response.setDescription("product not deleted from cart");
+		}
+		return response;
+
+	}// end of deleteProductFromCart
+
+	// .............................viewCart....................................//
+
+	@GetMapping(path = "/viewCart", produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE })
+	public MedicalResponse viewCart(CartBean cartBean) {
+		int id = auBean.getId();
+		cartBean.setId(id);
+		List<CartBean> cartlist = cartService.viewCartProduct(cartBean);
+		MedicalResponse response = new MedicalResponse();
+		if (cartlist != null) {
+			response.setStatusCode(210);
+			response.setMessage("success");
+			response.setDescription("your cart is ");
+			response.setCartBeanList(cartlist);
+
+		} else {
+			response.setStatusCode(230);
+			response.setMessage("fail");
+			response.setDescription("No products in your cart");
+		}
+
+		return response;
+	}// End of viewCart()
+
+	// .............................userQuestion....................................//
+
+	@PutMapping(path = "/userQuestion", consumes = { MediaType.APPLICATION_XML_VALUE,
+			MediaType.APPLICATION_JSON_VALUE }, produces = MediaType.APPLICATION_JSON_VALUE)
+	// @ResponseBody
+	public MedicalResponse userQuestion(@RequestBody DiscussionBoardBean discussionBoardBean) {
+		int id = auBean.getId();
+		String email = auBean.getEmail();
+		discussionBoardBean.setId(id);
+		discussionBoardBean.setEmail(email);
+		boolean isAdded = discussionBoardService.userQuestion(discussionBoardBean);
+		MedicalResponse medicalResponse = new MedicalResponse();
+		if (isAdded) {
+			medicalResponse.setStatusCode(210);
+			medicalResponse.setMessage("success");
+			medicalResponse.setDescription("Message send successfully");
+		} else {
+			medicalResponse.setStatusCode(230);
+			medicalResponse.setMessage("fail");
+			medicalResponse.setDescription("Message Not send");
+		}
+		return medicalResponse;
+
+	}// end of userQuestion
+
+	// .............................adminResponse....................................//
+
+	@PutMapping(path = "/adminResponse", consumes = { MediaType.APPLICATION_XML_VALUE,
+			MediaType.APPLICATION_JSON_VALUE }, produces = MediaType.APPLICATION_JSON_VALUE)
+	public MedicalResponse adminResponse(@RequestBody DiscussionBoardBean discussionBoardBean) {
+//		int id = auBean.getId();
+//		discussionBoardBean.setId(id);
+//		String email = auBean.getEmail();
+//		discussionBoardBean.setEmail(email);
+		boolean isAdded = discussionBoardService.adminResponse(discussionBoardBean);
+		MedicalResponse medicalResponse = new MedicalResponse();
+		if (isAdded) {
+			medicalResponse.setStatusCode(210);
+			medicalResponse.setMessage("success");
+			medicalResponse.setDescription("Reply send successfully");
+		} else {
+			medicalResponse.setStatusCode(230);
+			medicalResponse.setMessage("fail");
+			medicalResponse.setDescription("Reply Not send");
+		}
+		return medicalResponse;
+
+	}// end of adminResponse
+
+	// .............................seeUserQuestion....................................//
+
+	@GetMapping(path = "/seeUserQuestion", produces = { MediaType.APPLICATION_JSON_VALUE,
+			MediaType.APPLICATION_XML_VALUE })
+	public MedicalResponse seeUserQuestion() {
+		List<DiscussionBoardBean> discussionBoardBeanList = discussionBoardService.seeUserQuestion();
+		MedicalResponse response = new MedicalResponse();
+		if (discussionBoardBeanList != null && !discussionBoardBeanList.isEmpty()) {
+			response.setStatusCode(210);
+			response.setMessage("success");
+			response.setDescription("User Question List Found");
+			response.setDiscussionBoardBeanList(discussionBoardBeanList);
+
+		} else {
+			response.setStatusCode(210);
+			response.setMessage("success");
+			response.setDescription("No Questions Found");
+		}
+		return response;
+	}// end of seeUserQuestion
+
+	// .............................seeAdminResponse....................................//
+
+	@GetMapping(path = "/seeAdminResponse", produces = { MediaType.APPLICATION_JSON_VALUE,
+			MediaType.APPLICATION_XML_VALUE })
+	public MedicalResponse seeAdminResponse(DiscussionBoardBean discussionBoardBean) {
+		int id = auBean.getId();
+		discussionBoardBean.setId(id);
+		String email = auBean.getEmail();
+		discussionBoardBean.setEmail(email);
+		List<DiscussionBoardBean> discussionBoardBeanList = discussionBoardService
+				.seeAdminResponse(discussionBoardBean);
+		MedicalResponse response = new MedicalResponse();
+		if (discussionBoardBeanList != null && !discussionBoardBeanList.isEmpty()) {
+			response.setStatusCode(210);
+			response.setMessage("success");
+			response.setDescription("Admin Response Found");
+			response.setDiscussionBoardBeanList(discussionBoardBeanList);
+
+		} else {
+			response.setStatusCode(230);
+			response.setMessage("fail");
+			response.setDescription("No Response Found");
+		}
+		return response;
+	}// ENd of seeAdminResponse()
+
+	// .............................addProductToOrderList....................................//
+
+	@PostMapping(path = "/addProductToOrderList", consumes = { MediaType.APPLICATION_XML_VALUE,
+			MediaType.APPLICATION_JSON_VALUE }, produces = MediaType.APPLICATION_JSON_VALUE)
+	public MedicalResponse addProductToOrderList(@RequestBody CartBean cartBean) {
+
+		int id = auBean.getId();
+		cartBean.setId(id);
+		OrderProductBean orderProductBean = cartService.addProductToOrderList(cartBean);
+		MedicalResponse medicalResponse = new MedicalResponse();
+		if (orderProductBean != null) {
+			medicalResponse.setStatusCode(210);
+			medicalResponse.setMessage("success");
+			medicalResponse.setDescription("product added to order successfully");
+
+			List<ProductBean> list = productService.productList();
+			int productId = cartBean.getProductId();
+			int cartId = cartBean.getCartId();
+			for (ProductBean productBean2 : list) {
+				if (productId == productBean2.getProductId()) {
+
+					productBean2.setProductId(productId);
+					int userQuantity = cartBean.getProductQuantity();
+					int actualQuantity = productBean2.getProductQuantity();
+					int updatedQuantity = actualQuantity - userQuantity;
+					productBean2.setProductQuantity(updatedQuantity);
+					productService.updateProductQuantity(productBean2);
+
+					cartService.deleteProductFromCart(cartId);
+				}
+			}
+
+		} else {
+			medicalResponse.setStatusCode(230);
+			medicalResponse.setMessage("fail");
+			medicalResponse.setDescription("product not added.. please try agian");
+		}
+		return medicalResponse;
+
+	}// end of addEmployee
+	
+	// .............................viewOrder....................................//
+
+		@GetMapping(path = "/viewOrder", produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE })
+		public MedicalResponse viewOrder(OrderProductBean orderProductBean) {
+			int id = auBean.getId();
+			orderProductBean.setId(id);
+			List<OrderProductBean> orderProductBeanList = cartService.viewOrder(orderProductBean);
+			MedicalResponse response = new MedicalResponse();
+			if (orderProductBeanList != null) {
+				response.setStatusCode(210);
+				response.setMessage("success");
+				response.setDescription("your order list is ");
+				response.setOrderProductBeanList(orderProductBeanList);
+
+			} else {
+				response.setStatusCode(230);
+				response.setMessage("fail");
+				response.setDescription("No products in your cart");
+			}
+
+			return response;
+		}// End of viewCart()
+
+
+}// End of class
