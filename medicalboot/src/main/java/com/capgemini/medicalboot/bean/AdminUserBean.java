@@ -10,6 +10,7 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "adminuser")
 public class AdminUserBean {
+	//primarykey 
 	@Id
 	@Column
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
